@@ -1,0 +1,6 @@
+---
+IndentWidth: 4
+---
+Language: CSharp
+ColumnLimit: 100
+BreakBeforeBraces: Attach
