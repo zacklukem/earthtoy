@@ -4,3 +4,8 @@ IndentWidth: 4
 Language: CSharp
 ColumnLimit: 100
 BreakBeforeBraces: Attach
+AlignAfterOpenBracket: AlwaysBreak
+BinPackArguments: false
+BinPackParameters: false
+AlignOperands: AlignAfterOperator
+BreakBeforeBinaryOperators: NonAssignment

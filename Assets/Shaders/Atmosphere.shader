@@ -2,6 +2,7 @@ Shader "Hidden/Atmosphere" {
 
 Properties {
     _MainTex ("Texture", 2D) = "white" {}
+    _BlueNoise ("Blue Noise", 2D) = "white" {}
 }
 
 SubShader {
@@ -43,22 +44,32 @@ v2f vert(appdata v) {
 
 sampler2D _MainTex;
 sampler2D _CameraDepthTexture;
-// float4 _WorldSpaceLightPos0;
+sampler2D _BlueNoise;
 
-// Set by c#
 int scatteringPoints;
 int depthPoints;
 float planetRadius;
 float falloff;
 float atmosphereRadius;
 float3 planetOrigin;
+float3 scatterColor;
+float intensity;
+float ditherScale;
+float ditherStrength;
 
-float utilNum;
+float2 squareUV(float2 uv) {
+    float width = _ScreenParams.x;
+    float height = _ScreenParams.y;
+    float scale = 1000;
+    float x = uv.x * width;
+    float y = uv.y * height;
+    return float2(x / scale, y / scale);
+}
 
 float getDensity(float3 pt) {
-    float height = distance(pt, planetOrigin) / atmosphereRadius;
-    // height /= (atmosphereRadius - planetRadius);
-    return exp(-falloff * height) * (1 - height);
+    float height = distance(pt, planetOrigin) - planetRadius;
+    float height01 = height / (atmosphereRadius - planetRadius);
+    return exp(-height01 * falloff) * (1 - height01);
 }
 
 float opticalDepth(float3 pt, float3 dir, float dist) {
@@ -78,28 +89,36 @@ float opticalDepth(float3 pt, float3 dir, float dist) {
     return depth;
 }
 
-float4 scattering(float3 origin, float3 direction, float dist, float4 col) {
+float4 scattering(float3 origin, float3 direction, float dist, float4 col, float2 uv) {
+    float blueNoise = tex2Dlod(_BlueNoise, float4(squareUV(uv) * ditherScale, 0, 0));
+    blueNoise = (blueNoise - 0.5) * ditherStrength;
+
+    float3 lightDir = _WorldSpaceLightPos0;
 
     // Vector added to origin for each step
     float stepLength = dist / (float) (scatteringPoints - 1);
     float3 step = direction * stepLength;
     float3 currentPoint = origin;
-    float light = 0;
+    float3 light = 0;
+    float viewOpticalDepth = 0;
 
     for (int i = 0; i < scatteringPoints; i++) {
         // Dist from point to atmosphere in light direction
-        float sunAtmosphereDist = raySphere(planetOrigin, atmosphereRadius, currentPoint, _WorldSpaceLightPos0).y;
-        float sunOpticalDepth = opticalDepth(currentPoint, _WorldSpaceLightPos0, sunAtmosphereDist);
-        float viewOpticalDepth = opticalDepth(currentPoint, -direction, stepLength * i);
-        float transmittance = exp(-(sunOpticalDepth + viewOpticalDepth));
+        float sunAtmosphereDist = raySphere(planetOrigin, atmosphereRadius, currentPoint, lightDir).y;
+        float sunOpticalDepth = opticalDepth(currentPoint, lightDir * ditherStrength, sunAtmosphereDist);
+        viewOpticalDepth = opticalDepth(currentPoint, direction, stepLength * i);
+        float3 transmittance = exp(-(sunOpticalDepth + viewOpticalDepth) * scatterColor);
 
         float density = getDensity(currentPoint);
 
-        light += density * transmittance * stepLength;
+        light += density * transmittance;
         currentPoint += step;
     }
 
-    return col * (1 - light) + light;
+    light *= scatterColor * intensity * stepLength;
+    light += blueNoise * 0.01;
+
+    return float4(max(light, 0) + col.xyz, col.w);
 }
 
 float4 frag(v2f i) : SV_Target {
@@ -110,13 +129,21 @@ float4 frag(v2f i) : SV_Target {
 
     if (atmosphereHit.x == FLOAT_MAX) return col;
 
-    float sceneDistE = tex2D(_CameraDepthTexture, i.uv);
+    float sceneDistE = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv);
     float sceneDist = LinearEyeDepth(sceneDistE) * length(i.cameraViewDir);
 
     float atmosphereDist = min(atmosphereHit.y, sceneDist - atmosphereHit.x);
 
     if (atmosphereDist > 0) {
-        return scattering(_WorldSpaceCameraPos + cameraViewDir * (atmosphereHit.x + 0.0001), cameraViewDir, atmosphereHit.y - 0.0002, col);
+        float4 o = scattering(
+            _WorldSpaceCameraPos + cameraViewDir * (atmosphereHit.x + 0.0001),
+            cameraViewDir,
+            atmosphereDist - 0.0002,
+            col,
+            i.uv
+        );
+        o.w = 0.5;
+        return o;
     }
 
     return col;
