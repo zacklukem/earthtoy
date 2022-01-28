@@ -310,7 +310,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6cc869a91bd9c48df81519c475cf7449, type: 3}
   m_Name: 
@@ -345,6 +345,59 @@ MonoBehaviour:
   bobOffset: 221
   lookOffset: 0.1
   lookDown: 4.27
+--- !u!1 &1667104902
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1667104906}
+  - component: {fileID: 1667104903}
+  m_Layer: 0
+  m_Name: Land
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1667104903
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1667104902}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd3661c54620d4e87a9eb42880db6da3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gen: 1
+  divisions: 256
+  meshDivide: 4
+  lowVal: 0.9
+  meshSectionPrefab: {fileID: 3787165065645973936, guid: 4ec0abda4123344d1bd198f24be70b8b, type: 3}
+  stages:
+  - {x: 1, y: 0.12}
+  - {x: 3, y: 0.08}
+  - {x: 10, y: 0.01}
+--- !u!4 &1667104906
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1667104902}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 200, y: 200, z: 200}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1944548714
 GameObject:
   m_ObjectHideFlags: 0
